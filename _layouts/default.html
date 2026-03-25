@@ -431,7 +431,9 @@
                               <p class="print-cover-tagline">Le cours de Yann LE CUN et Alfredo CANZIANI</p>
                               <p class="print-cover-translation">traduit en français par Loïck BOURDOIS</p>
                             {% else %}
-                              <h1 class="page-title">{{ lang.title }}</h1>
+                              <h1 class="page-title">New York University Deep Learning Course</h1>
+                              <p class="print-cover-subtitle">2021 Edition</p>
+                              <p class="print-cover-tagline">Course by Yann LeCun and Alfredo Canziani</p>
                             {% endif %}
                           </div>
                         </section>
@@ -641,7 +643,27 @@
     <script src="{{ site.baseurl }}/static/book.js" type="text/javascript" charset="utf-8"></script>
 
     <script>
+      function normalize_print_math_blocks() {
+      Array.from(document.querySelectorAll('.print-home p, .print-chapter p, .print-section p')).forEach(function (block) {
+          var text = block.textContent.trim();
+          if (!text) {
+              return;
+          }
+
+          if (!text.startsWith('[') || !text.endsWith(']')) {
+              return;
+          }
+
+          if (!(/[\\_^{}]|\\mathbb|\\boldsymbol|\\red|\\Dec|\\Enc/.test(text))) {
+              return;
+          }
+
+          block.textContent = '\\[' + text.slice(1, -1).trim() + '\\]';
+      });
+      };
+
       function render_auto_katex() {
+      normalize_print_math_blocks();
       renderMathInElement(document.body, {
                       delimiters: [
                       {left: '$$', right: '$$', display: true},
@@ -676,27 +698,32 @@
       (function () {
         var params = new URLSearchParams(window.location.search);
         function absolutizePrintResources() {
-          Array.from(document.querySelectorAll('[data-base-url]')).forEach(function (section) {
-            var baseUrl = section.getAttribute('data-base-url');
-            if (!baseUrl) {
-              return;
+          function resolveUrl(value, baseUrl) {
+            if (!value || value.startsWith('#') || value.startsWith('mailto:') || value.startsWith('tel:') || value.startsWith('javascript:') || value.startsWith('data:')) {
+              return value;
             }
 
-            Array.from(section.querySelectorAll('a[href]')).forEach(function (link) {
-              var href = link.getAttribute('href');
-              if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) {
-                return;
-              }
-              link.setAttribute('href', new URL(href, window.location.origin + baseUrl).href);
-            });
+            return new URL(value, window.location.origin + baseUrl).href;
+          }
 
-            Array.from(section.querySelectorAll('img[src]')).forEach(function (img) {
-              var src = img.getAttribute('src');
-              if (!src || src.startsWith('data:')) {
-                return;
-              }
-              img.setAttribute('src', new URL(src, window.location.origin + baseUrl).href);
-            });
+          Array.from(document.querySelectorAll('a[href]')).forEach(function (link) {
+            var href = link.getAttribute('href');
+            var section = link.closest('[data-base-url]');
+            var baseUrl = section ? section.getAttribute('data-base-url') : window.location.pathname;
+            var absoluteHref = resolveUrl(href, baseUrl || '/');
+            if (absoluteHref) {
+              link.setAttribute('href', absoluteHref);
+            }
+          });
+
+          Array.from(document.querySelectorAll('img[src]')).forEach(function (img) {
+            var src = img.getAttribute('src');
+            var section = img.closest('[data-base-url]');
+            var baseUrl = section ? section.getAttribute('data-base-url') : window.location.pathname;
+            var absoluteSrc = resolveUrl(src, baseUrl || '/');
+            if (absoluteSrc) {
+              img.setAttribute('src', absoluteSrc);
+            }
           });
         }
 
