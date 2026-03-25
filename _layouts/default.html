@@ -62,6 +62,61 @@
         var default_theme = "ayu";
         var jekyllBookThemeOverride = null;
         var jekyllBookPrintState = { katexRendered: false, autoKatexRendered: false };
+        var jekyllBookKatexMacros = {
+            "\\sam": "\\mathrm{softargmax}(#1)",
+            "\\vect": "\\boldsymbol{#1}",
+            "\\matr": "\\boldsymbol{#1}",
+            "\\E": "\\mathbb{E}",
+            "\\V": "\\mathbb{V}",
+            "\\R": "\\mathbb{R}",
+            "\\N": "\\mathbb{N}",
+            "\\relu": "\\texttt{ReLU}(#1)",
+            "\\D": "\\,\\mathrm{d}",
+            "\\deriv": "\\frac{\\D #1}{\\D #2}",
+            "\\pd": "\\frac{\\partial #1}{\\partial #2}",
+            "\\set": "\\left\\lbrace #1 \\right\\rbrace",
+            "\\aqua": "\\textcolor{8dd3c7}{#1}",
+            "\\yellow": "\\textcolor{ffffb3}{#1}",
+            "\\lavender": "\\textcolor{bebada}{#1}",
+            "\\red": "\\textcolor{fb8072}{#1}",
+            "\\blue": "\\textcolor{80b1d3}{#1}",
+            "\\orange": "\\textcolor{fdb462}{#1}",
+            "\\green": "\\textcolor{b3de69}{#1}",
+            "\\pink": "\\textcolor{fccde5}{#1}",
+            "\\vgrey": "\\textcolor{d9d9d9}{#1}",
+            "\\violet": "\\textcolor{bc80bd}{#1}",
+            "\\unka": "\\textcolor{ccebc5}{#1}",
+            "\\unkb": "\\textcolor{ffed6f}{#1}",
+            "\\vx": "\\pink{\\vect{x }}",
+            "\\vy": "\\blue{\\vect{y }}",
+            "\\vb": "\\vect{b}",
+            "\\vz": "\\orange{\\vect{z }}",
+            "\\vtheta": "\\vect{\\theta }",
+            "\\vh": "\\green{\\vect{h }}",
+            "\\vq": "\\aqua{\\vect{q }}",
+            "\\vk": "\\yellow{\\vect{k }}",
+            "\\vv": "\\green{\\vect{v }}",
+            "\\vytilde": "\\violet{\\tilde{\\vect{y}}}",
+            "\\vyhat": "\\red{\\hat{\\vect{y}}}",
+            "\\vycheck": "\\blue{\\check{\\vect{y}}}",
+            "\\vzcheck": "\\blue{\\check{\\vect{z}}}",
+            "\\vztilde": "\\green{\\tilde{\\vect{z}}}",
+            "\\vmu": "\\green{\\vect{\\mu}}",
+            "\\vu": "\\orange{\\vect{u}}",
+            "\\mW": "\\matr{W}",
+            "\\mA": "\\matr{A}",
+            "\\mX": "\\pink{\\matr{X}}",
+            "\\mY": "\\blue{\\matr{Y}}",
+            "\\mQ": "\\aqua{\\matr{Q }}",
+            "\\mK": "\\yellow{\\matr{K }}",
+            "\\mV": "\\lavender{\\matr{V }}",
+            "\\mH": "\\green{\\matr{H }}",
+            "\\cx": "\\pink{x}",
+            "\\ctheta": "\\orange{\\theta}",
+            "\\cz": "\\orange{z}",
+            "\\Enc": "\\lavender{\\text{Enc}}",
+            "\\Dec": "\\aqua{\\text{Dec}}"
+        };
         try {
             jekyllBookThemeOverride = new URLSearchParams(window.location.search).get('theme');
         } catch (e) { }
@@ -370,20 +425,18 @@
 
                         <section class="print-cover">
                           <div class="print-cover-inner">
-                            <p class="print-cover-kicker">{{ site.homepage_title }}</p>
-                            <h1 class="page-title">{{ lang.title }}</h1>
-                            {% if site.title and site.title != lang.title %}
-                              <p class="print-cover-subtitle">{{ site.title }}</p>
-                            {% endif %}
-                            {% if lang.tagline %}
-                              <p class="print-cover-tagline">{{ lang.tagline }}</p>
-                            {% elsif site.tagline %}
-                              <p class="print-cover-tagline">{{ site.tagline }}</p>
+                            {% if thislang == "fr" %}
+                              <h1 class="page-title">Cours d’apprentissage profond de la New York University</h1>
+                              <p class="print-cover-subtitle">Edition 2021</p>
+                              <p class="print-cover-tagline">Le cours de Yann LE CUN et Alfredo CANZIANI</p>
+                              <p class="print-cover-translation">traduit en français par Loïck BOURDOIS</p>
+                            {% else %}
+                              <h1 class="page-title">{{ lang.title }}</h1>
                             {% endif %}
                           </div>
                         </section>
 
-                        <section class="print-home">
+                        <section class="print-home"{% if home_page %} data-base-url="{{ site.baseurl }}{{ home_page.url }}"{% endif %}>
                           <h1>{{ site.homepage_title }}</h1>
                           {% if home_page %}
                             {{ home_page.content | markdownify }}
@@ -437,14 +490,14 @@
 
                         {% for chapter in lang.prologues %}
                           {% assign node = site.pages | where: "path", chapter.path | first %}
-                          <section class="print-chapter">
+                          <section class="print-chapter" data-base-url="{{ site.baseurl }}{{ node.url }}">
                             <h1>{{ node.title }}</h1>
                             {{ node.content | markdownify }}
                           </section>
                           {% if chapter.sections %}
                             {% for section in chapter.sections %}
                               {% assign snode = site.pages | where: "path", section.path | first %}
-                              <section class="print-section">
+                              <section class="print-section" data-base-url="{{ site.baseurl }}{{ snode.url }}">
                                 <h2>{{ snode.title }}</h2>
                                 {{ snode.content | markdownify }}
                               </section>
@@ -455,14 +508,14 @@
                         {% for chapter in lang.chapters %}
                           {% assign node = site.pages | where: "path", chapter.path | first %}
                           {% assign chapteridx = forloop.index %}
-                          <section class="print-chapter">
+                          <section class="print-chapter" data-base-url="{{ site.baseurl }}{{ node.url }}">
                             <h1><span class="print-number">{{ chapteridx }}.</span> {{ node.title }}</h1>
                             {{ node.content | markdownify }}
                           </section>
                           {% if chapter.sections %}
                             {% for section in chapter.sections %}
                               {% assign snode = site.pages | where: "path", section.path | first %}
-                              <section class="print-section">
+                              <section class="print-section" data-base-url="{{ site.baseurl }}{{ snode.url }}">
                                 <h2><span class="print-number">{{ chapteridx }}.{{ forloop.index }}.</span> {{ snode.title }}</h2>
                                 {{ snode.content | markdownify }}
                               </section>
@@ -472,14 +525,14 @@
 
                         {% for chapter in lang.epilogues %}
                           {% assign node = site.pages | where: "path", chapter.path | first %}
-                          <section class="print-chapter">
+                          <section class="print-chapter" data-base-url="{{ site.baseurl }}{{ node.url }}">
                             <h1>{{ node.title }}</h1>
                             {{ node.content | markdownify }}
                           </section>
                           {% if chapter.sections %}
                             {% for section in chapter.sections %}
                               {% assign snode = site.pages | where: "path", section.path | first %}
-                              <section class="print-section">
+                              <section class="print-section" data-base-url="{{ site.baseurl }}{{ snode.url }}">
                                 <h2>{{ snode.title }}</h2>
                                 {{ snode.content | markdownify }}
                               </section>
@@ -589,12 +642,16 @@
 
     <script>
       function render_auto_katex() {
-      renderMathInElement(document.body, {delimiters: [
+      renderMathInElement(document.body, {
+                      delimiters: [
                       {left: '$$', right: '$$', display: true},
                       {left: '$', right: '$', display: false},
                       {left: '\\[', right: '\\]', display: true},
                       {left: '\\(', right: '\\)', display: false}
-      ]});
+      ],
+                      macros: jekyllBookKatexMacros,
+                      throwOnError: false
+      });
       jekyllBookPrintState.autoKatexRendered = true;
       document.dispatchEvent(new Event('jekyllbook:auto-katex-rendered'));
       };
@@ -602,12 +659,12 @@
       function render_katex() {
       $("script[type='math/tex']").replaceWith(function() {
           var tex = $(this).text();
-          return katex.renderToString(tex, {displayMode: false});
+          return katex.renderToString(tex, {displayMode: false, macros: jekyllBookKatexMacros, throwOnError: false});
       });
 
       $("script[type='math/tex; mode=display']").replaceWith(function() {
           var tex = $(this).html();
-          return katex.renderToString(tex.replace(/%.*/g, ''), {displayMode: true});
+          return katex.renderToString(tex.replace(/%.*/g, ''), {displayMode: true, macros: jekyllBookKatexMacros, throwOnError: false});
       });
       jekyllBookPrintState.katexRendered = true;
       document.dispatchEvent(new Event('jekyllbook:katex-rendered'));
@@ -618,6 +675,31 @@
     <script>
       (function () {
         var params = new URLSearchParams(window.location.search);
+        function absolutizePrintResources() {
+          Array.from(document.querySelectorAll('[data-base-url]')).forEach(function (section) {
+            var baseUrl = section.getAttribute('data-base-url');
+            if (!baseUrl) {
+              return;
+            }
+
+            Array.from(section.querySelectorAll('a[href]')).forEach(function (link) {
+              var href = link.getAttribute('href');
+              if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) {
+                return;
+              }
+              link.setAttribute('href', new URL(href, window.location.origin + baseUrl).href);
+            });
+
+            Array.from(section.querySelectorAll('img[src]')).forEach(function (img) {
+              var src = img.getAttribute('src');
+              if (!src || src.startsWith('data:')) {
+                return;
+              }
+              img.setAttribute('src', new URL(src, window.location.origin + baseUrl).href);
+            });
+          });
+        }
+
         function waitForImages() {
           var images = Array.from(document.images || []);
           return Promise.all(images.map(function (img) {
@@ -688,6 +770,7 @@
 
         if (params.get('autoprint') === '1') {
           window.addEventListener('load', function () {
+            absolutizePrintResources();
             Promise.all([
               waitForFonts(),
               waitForImages(),

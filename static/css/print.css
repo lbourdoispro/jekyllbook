@@ -69,7 +69,17 @@ pre, code {
     white-space: pre-wrap;
 }
 
-img, svg, table, blockquote {
+img, svg, blockquote {
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+table {
+    page-break-inside: auto;
+    break-inside: auto;
+}
+
+tr, td, th {
     page-break-inside: avoid;
     break-inside: avoid;
 }
@@ -134,7 +144,8 @@ img, svg, table, blockquote {
 }
 
 .print-cover-subtitle,
-.print-cover-tagline {
+.print-cover-tagline,
+.print-cover-translation {
     font-size: 2rem;
 }
 
