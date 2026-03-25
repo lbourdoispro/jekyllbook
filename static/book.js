@@ -591,6 +591,193 @@ function playpen_text(playpen) {
     }
 })();
 
+(function search() {
+    var searchToggleButton = document.getElementById('search-toggle');
+    var searchWrapper = document.getElementById('search-wrapper');
+    var searchInput = document.getElementById('searchbar');
+    var searchResults = document.getElementById('searchresults');
+    var searchHeader = document.getElementById('searchresults-header');
+    var searchDocuments = window.jekyllBookSearchIndex || [];
+
+    function hasFocus() {
+        return document.activeElement === searchInput;
+    }
+
+    window.search = {
+        hasFocus: hasFocus,
+        focus: function () {
+            if (searchWrapper && searchInput) {
+                openSearch();
+                searchInput.focus();
+                searchInput.select();
+            }
+        }
+    };
+
+    if (!searchToggleButton || !searchWrapper || !searchInput || !searchResults || !searchHeader) {
+        return;
+    }
+
+    function openSearch() {
+        searchWrapper.hidden = false;
+        searchWrapper.classList.add('active');
+        searchToggleButton.setAttribute('aria-expanded', true);
+    }
+
+    function closeSearch() {
+        searchWrapper.hidden = true;
+        searchWrapper.classList.remove('active');
+        searchToggleButton.setAttribute('aria-expanded', false);
+    }
+
+    function escapeHtml(text) {
+        return (text || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function createTeaser(text, query) {
+        var cleanText = (text || '').replace(/\s+/g, ' ').trim();
+        if (!cleanText) {
+            return 'No preview available for this page.';
+        }
+
+        var normalizedText = cleanText.toLowerCase();
+        var normalizedQuery = query.toLowerCase();
+        var matchIndex = normalizedText.indexOf(normalizedQuery);
+        var teaserRadius = 90;
+
+        if (matchIndex === -1) {
+            return escapeHtml(cleanText.slice(0, teaserRadius * 2)) + (cleanText.length > teaserRadius * 2 ? '...' : '');
+        }
+
+        var start = Math.max(0, matchIndex - teaserRadius);
+        var end = Math.min(cleanText.length, matchIndex + query.length + teaserRadius);
+        var prefix = start > 0 ? '...' : '';
+        var suffix = end < cleanText.length ? '...' : '';
+        var teaser = cleanText.slice(start, end);
+        var escapedTeaser = escapeHtml(teaser);
+        var queryPattern = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'ig');
+
+        return prefix + escapedTeaser.replace(queryPattern, function (match) {
+            return '<em>' + match + '</em>';
+        }) + suffix;
+    }
+
+    function scoreDocument(doc, query) {
+        var normalizedQuery = query.toLowerCase();
+        var title = (doc.title || '').toLowerCase();
+        var body = (doc.body || '').toLowerCase();
+        var titleIndex = title.indexOf(normalizedQuery);
+        var bodyIndex = body.indexOf(normalizedQuery);
+
+        if (titleIndex === -1 && bodyIndex === -1) {
+            return -1;
+        }
+
+        var score = 0;
+        if (titleIndex !== -1) {
+            score += 200 - Math.min(titleIndex, 100);
+        }
+        if (bodyIndex !== -1) {
+            score += 100 - Math.min(bodyIndex, 100);
+        }
+
+        return score;
+    }
+
+    function renderResults(query) {
+        var trimmedQuery = query.trim();
+        searchResults.innerHTML = '';
+
+        if (!trimmedQuery) {
+            searchHeader.textContent = 'Type to search across the whole book.';
+            return;
+        }
+
+        var matches = searchDocuments
+            .map(function (doc) {
+                return {
+                    doc: doc,
+                    score: scoreDocument(doc, trimmedQuery)
+                };
+            })
+            .filter(function (entry) {
+                return entry.score >= 0;
+            })
+            .sort(function (left, right) {
+                return right.score - left.score;
+            })
+            .slice(0, 20);
+
+        if (!matches.length) {
+            searchHeader.textContent = 'No results found.';
+            return;
+        }
+
+        searchHeader.textContent = matches.length + ' result' + (matches.length > 1 ? 's' : '') + ' found.';
+
+        matches.forEach(function (match) {
+            var item = document.createElement('li');
+            var link = document.createElement('a');
+            var title = document.createElement('strong');
+            var teaser = document.createElement('span');
+
+            link.href = match.doc.url;
+            title.textContent = match.doc.title;
+            teaser.className = 'teaser';
+            teaser.innerHTML = createTeaser(match.doc.body, trimmedQuery);
+
+            link.appendChild(title);
+            item.appendChild(link);
+            item.appendChild(teaser);
+            searchResults.appendChild(item);
+        });
+    }
+
+    searchToggleButton.addEventListener('click', function () {
+        if (searchWrapper.hidden) {
+            openSearch();
+            searchInput.focus();
+            searchInput.select();
+        } else {
+            closeSearch();
+            searchToggleButton.focus();
+        }
+    });
+
+    searchInput.addEventListener('input', function () {
+        renderResults(searchInput.value);
+    });
+
+    searchInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            closeSearch();
+            searchToggleButton.focus();
+        }
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.altKey || e.ctrlKey || e.metaKey) { return; }
+
+        if (e.key === '/' && !hasFocus()) {
+            e.preventDefault();
+            openSearch();
+            searchInput.focus();
+            searchInput.select();
+        }
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!searchWrapper.hidden && !searchWrapper.contains(e.target) && !searchToggleButton.contains(e.target)) {
+            closeSearch();
+        }
+    });
+})();
+
 (function chapterNavigation() {
     document.addEventListener('keydown', function (e) {
         if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) { return; }

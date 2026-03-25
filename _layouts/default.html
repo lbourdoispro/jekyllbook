@@ -269,6 +269,9 @@
                         <button id="lang-toggle" class="icon-button" type="button" title="Change language" aria-label="Change language" aria-haspopup="true" aria-expanded="false" aria-controls="lang-list">
                             <i class="fa flag-placeholder lang-is-{{ thislang }}"></i>
                         </button>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search this book" aria-label="Search this book" aria-expanded="false" aria-controls="search-wrapper">
+                            <i class="fa fa-search"></i>
+                        </button>
                     </div>
                     <ul id="theme-list" class="button-popup theme-popup" aria-label="Themes" role="menu">
                         <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
@@ -302,10 +305,29 @@
                     <h1 class="menu-title">{{ lang.title }}</h1>
 
                     <div class="right-buttons">
+                        <a href="{{ base_url }}print/?autoprint=1" title="Print this book" aria-label="Print this book">
+                            <i class="fa fa-print"></i>
+                        </a>
                         <a href="{{ site.git_repository_url }}" title="Git repository" aria-label="Git repository">
                             <!-- <i id="git-repository-button" class="fa {{ site.git_repository_icon }}"></i> -->
                             <i id="git-repository-button"></i>
                         </a>
+                    </div>
+                </div>
+                <div id="search-wrapper" class="search-wrapper" hidden>
+                    <div class="searchbar-outer">
+                        <input
+                            type="search"
+                            id="searchbar"
+                            name="search"
+                            placeholder="Search this book"
+                            aria-label="Search this book"
+                            autocomplete="off"
+                            spellcheck="false">
+                    </div>
+                    <div class="searchresults-outer">
+                        <div id="searchresults-header" class="searchresults-header">Type to search across the whole book.</div>
+                        <ul id="searchresults" aria-label="Search results"></ul>
                     </div>
                 </div>
             </div>
@@ -322,11 +344,74 @@
             <div id="content" class="content">
                 <main>
                     <div class="page" {{dir}}>
-                      <h1 class="page-title">{{ page.title }}</h1>
-                      {{ content }}
+                      {% if page.print_page %}
+                        <div class="print-controls">
+                          <a class="icon-button print-action" href="#" onclick="window.print(); return false;">
+                            <i class="fa fa-print"></i> Download as PDF
+                          </a>
+                        </div>
+
+                        <h1 class="page-title">{{ lang.title }}</h1>
+
+                        {% for chapter in lang.prologues %}
+                          {% assign node = site.pages | where: "path", chapter.path | first %}
+                          <section class="print-chapter">
+                            <h1>{{ node.title }}</h1>
+                            {{ node.content | markdownify }}
+                          </section>
+                          {% if chapter.sections %}
+                            {% for section in chapter.sections %}
+                              {% assign snode = site.pages | where: "path", section.path | first %}
+                              <section class="print-section">
+                                <h2>{{ snode.title }}</h2>
+                                {{ snode.content | markdownify }}
+                              </section>
+                            {% endfor %}
+                          {% endif %}
+                        {% endfor %}
+
+                        {% for chapter in lang.chapters %}
+                          {% assign node = site.pages | where: "path", chapter.path | first %}
+                          {% assign chapteridx = forloop.index %}
+                          <section class="print-chapter">
+                            <h1><span class="print-number">{{ chapteridx }}.</span> {{ node.title }}</h1>
+                            {{ node.content | markdownify }}
+                          </section>
+                          {% if chapter.sections %}
+                            {% for section in chapter.sections %}
+                              {% assign snode = site.pages | where: "path", section.path | first %}
+                              <section class="print-section">
+                                <h2><span class="print-number">{{ chapteridx }}.{{ forloop.index }}.</span> {{ snode.title }}</h2>
+                                {{ snode.content | markdownify }}
+                              </section>
+                            {% endfor %}
+                          {% endif %}
+                        {% endfor %}
+
+                        {% for chapter in lang.epilogues %}
+                          {% assign node = site.pages | where: "path", chapter.path | first %}
+                          <section class="print-chapter">
+                            <h1>{{ node.title }}</h1>
+                            {{ node.content | markdownify }}
+                          </section>
+                          {% if chapter.sections %}
+                            {% for section in chapter.sections %}
+                              {% assign snode = site.pages | where: "path", section.path | first %}
+                              <section class="print-section">
+                                <h2>{{ snode.title }}</h2>
+                                {{ snode.content | markdownify }}
+                              </section>
+                            {% endfor %}
+                          {% endif %}
+                        {% endfor %}
+                      {% else %}
+                        <h1 class="page-title">{{ page.title }}</h1>
+                        {{ content }}
+                      {% endif %}
                     </div>
                 </main>
 
+                {% unless page.print_page %}
                 <nav class="nav-wrapper" aria-label="Page navigation">
                     <!-- Mobile navigation buttons -->
                     <a rel="prev" href="{{ site.baseurl }}{{ page_prev.url }}" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
@@ -339,9 +424,11 @@
 
                     <div style="clear: both"></div>
                 </nav>
+                {% endunless %}
             </div>
         </div>
 
+        {% unless page.print_page %}
         <nav class="nav-wide-wrapper" aria-label="Page navigation">
                 <a href="{{ site.baseurl }}{{ page_prev.url }}" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                     <i class="fa fa-angle-left"></i>
@@ -351,8 +438,68 @@
                     <i class="fa fa-angle-right"></i>
                 </a>
         </nav>
+        {% endunless %}
 
     </div>
+
+    <script type="text/javascript">
+        window.jekyllBookSearchIndex = [];
+        {% for chapter in lang.prologues %}
+          {% assign node = site.pages | where: "path", chapter.path | first %}
+          window.jekyllBookSearchIndex.push({
+              title: {{ node.title | jsonify }},
+              url: {{ site.baseurl | append: node.url | jsonify }},
+              body: {{ node.content | markdownify | strip_html | normalize_whitespace | jsonify }}
+          });
+          {% if chapter.sections %}
+            {% for section in chapter.sections %}
+              {% assign snode = site.pages | where: "path", section.path | first %}
+              window.jekyllBookSearchIndex.push({
+                  title: {{ snode.title | jsonify }},
+                  url: {{ site.baseurl | append: snode.url | jsonify }},
+                  body: {{ snode.content | markdownify | strip_html | normalize_whitespace | jsonify }}
+              });
+            {% endfor %}
+          {% endif %}
+        {% endfor %}
+        {% for chapter in lang.chapters %}
+          {% assign node = site.pages | where: "path", chapter.path | first %}
+          {% assign chapteridx = forloop.index %}
+          window.jekyllBookSearchIndex.push({
+              title: {{ chapteridx | append: ". " | append: node.title | jsonify }},
+              url: {{ site.baseurl | append: node.url | jsonify }},
+              body: {{ node.content | markdownify | strip_html | normalize_whitespace | jsonify }}
+          });
+          {% if chapter.sections %}
+            {% for section in chapter.sections %}
+              {% assign snode = site.pages | where: "path", section.path | first %}
+              window.jekyllBookSearchIndex.push({
+                  title: {{ chapteridx | append: "." | append: forloop.index | append: ". " | append: snode.title | jsonify }},
+                  url: {{ site.baseurl | append: snode.url | jsonify }},
+                  body: {{ snode.content | markdownify | strip_html | normalize_whitespace | jsonify }}
+              });
+            {% endfor %}
+          {% endif %}
+        {% endfor %}
+        {% for chapter in lang.epilogues %}
+          {% assign node = site.pages | where: "path", chapter.path | first %}
+          window.jekyllBookSearchIndex.push({
+              title: {{ node.title | jsonify }},
+              url: {{ site.baseurl | append: node.url | jsonify }},
+              body: {{ node.content | markdownify | strip_html | normalize_whitespace | jsonify }}
+          });
+          {% if chapter.sections %}
+            {% for section in chapter.sections %}
+              {% assign snode = site.pages | where: "path", section.path | first %}
+              window.jekyllBookSearchIndex.push({
+                  title: {{ snode.title | jsonify }},
+                  url: {{ site.baseurl | append: snode.url | jsonify }},
+                  body: {{ snode.content | markdownify | strip_html | normalize_whitespace | jsonify }}
+              });
+            {% endfor %}
+          {% endif %}
+        {% endfor %}
+    </script>
 
     <script src="{{ site.baseurl }}/static/clipboard.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="{{ site.baseurl }}/static/highlight.js" type="text/javascript" charset="utf-8"></script>
@@ -371,6 +518,19 @@
       });
       };
     </script>
+
+    {% if page.print_page %}
+    <script>
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        if (params.get('autoprint') === '1') {
+          window.addEventListener('load', function () {
+            window.print();
+          });
+        }
+      })();
+    </script>
+    {% endif %}
 
     </body>
 </html>

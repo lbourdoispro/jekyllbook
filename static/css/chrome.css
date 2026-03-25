@@ -66,6 +66,9 @@ a > .hljs {
 }
 
 .right-buttons {
+    display: flex;
+    align-items: center;
+    gap: 4px;
     margin: 0 15px;
 }
 .right-buttons a {
@@ -226,6 +229,18 @@ pre > .result {
 
 /* Search */
 
+.search-wrapper {
+    display: none;
+    width: 100%;
+    padding: 0 15px 15px 15px;
+    background-color: var(--bg);
+    border-bottom: 1px solid var(--table-border-color);
+}
+
+.search-wrapper.active {
+    display: block;
+}
+
 #searchresults a {
     text-decoration: none;
 }
@@ -263,6 +278,37 @@ mark.fade-out {
 #searchbar:focus,
 #searchbar.active {
     box-shadow: 0 0 3px var(--searchbar-shadow-color);
+}
+
+.print-controls {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+}
+
+.print-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border: 1px solid var(--table-border-color);
+    border-radius: 4px;
+    color: var(--fg);
+    text-decoration: none;
+}
+
+.print-action:hover {
+    text-decoration: none;
+    background-color: var(--theme-hover);
+}
+
+.print-chapter,
+.print-section {
+    margin-bottom: 2.5rem;
+}
+
+.print-number {
+    color: var(--icons);
 }
 
 .searchresults-header {

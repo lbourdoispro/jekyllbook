@@ -52,3 +52,15 @@ pre, code {
 .fa {
     display: none !important;
 }
+
+.print-controls {
+    display: none !important;
+}
+
+.print-chapter {
+    page-break-before: always;
+}
+
+.print-chapter:first-of-type {
+    page-break-before: auto;
+}
