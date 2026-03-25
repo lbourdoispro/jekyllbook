@@ -643,27 +643,59 @@
     <script src="{{ site.baseurl }}/static/book.js" type="text/javascript" charset="utf-8"></script>
 
     <script>
+      function extract_print_display_math(text) {
+      var trimmed = (text || '').trim();
+      if (!trimmed) {
+          return null;
+      }
+
+      if (trimmed.startsWith('$$') && trimmed.endsWith('$$')) {
+          return trimmed.slice(2, -2).trim();
+      }
+
+      if (trimmed.startsWith('\\[') && trimmed.endsWith('\\]')) {
+          return trimmed.slice(2, -2).trim();
+      }
+
+      if (trimmed.startsWith('[') && trimmed.endsWith(']') && /[\\_^{}]/.test(trimmed)) {
+          return trimmed.slice(1, -1).trim();
+      }
+
+      return null;
+      };
+
       function normalize_print_math_blocks() {
       Array.from(document.querySelectorAll('.print-home p, .print-chapter p, .print-section p')).forEach(function (block) {
-          var text = block.textContent.trim();
-          if (!text) {
+          var math = extract_print_display_math(block.textContent);
+          if (!math) {
               return;
           }
 
-          if (!text.startsWith('[') || !text.endsWith(']')) {
-              return;
-          }
+          var mathBlock = document.createElement('div');
+          mathBlock.className = 'print-display-math';
+          mathBlock.setAttribute('data-math', math);
+          block.replaceWith(mathBlock);
+      });
+      };
 
-          if (!(/[\\_^{}]|\\mathbb|\\boldsymbol|\\red|\\Dec|\\Enc/.test(text))) {
-              return;
+      function render_print_display_math() {
+      Array.from(document.querySelectorAll('.print-display-math')).forEach(function (block) {
+          var tex = block.getAttribute('data-math') || '';
+          try {
+              katex.render(tex, block, {
+                  displayMode: true,
+                  macros: jekyllBookKatexMacros,
+                  throwOnError: false
+              });
+          } catch (e) {
+              block.textContent = '\\[' + tex + '\\]';
           }
-
-          block.textContent = '\\[' + text.slice(1, -1).trim() + '\\]';
       });
       };
 
       function render_auto_katex() {
       normalize_print_math_blocks();
+      render_print_display_math();
       renderMathInElement(document.body, {
                       delimiters: [
                       {left: '$$', right: '$$', display: true},

@@ -64,7 +64,13 @@ h1, h2, h3, h4, h5, h6 {
     page-break-after: avoid;
 }
 
-pre, code {
+pre {
+    page-break-inside: auto;
+    break-inside: auto;
+    white-space: pre-wrap;
+}
+
+code {
     page-break-inside: avoid;
     white-space: pre-wrap;
 }
@@ -154,6 +160,24 @@ tr, td, th {
 .print-section h2 {
     break-after: avoid;
     page-break-after: avoid;
+}
+
+.print-display-math {
+    margin: 1em 0;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+h1 + pre,
+h2 + pre,
+h3 + pre,
+h4 + pre,
+h1 + .print-display-math,
+h2 + .print-display-math,
+h3 + .print-display-math,
+h4 + .print-display-math {
+    break-before: avoid;
+    page-break-before: avoid;
 }
 
 .print-home .chapter,
