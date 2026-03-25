@@ -53,12 +53,7 @@
 
       <!-- To automatically render math in text elements, include the auto-render extension: -->
       <script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/contrib/auto-render.min.js" integrity="sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI" crossorigin="anonymous"
-          onload="renderMathInElement(document.body, {delimiters: [
-                          {left: '$$', right: '$$', display: true},
-                          {left: '$', right: '$', display: false},
-                          {left: '\\[', right: '\\]', display: true},
-                          {left: '\\(', right: '\\)', display: false}
-          ]});"></script>
+          onload="render_auto_katex()"></script>
     </head>
 
   <body class="ayu">
@@ -66,7 +61,7 @@
     <script type="text/javascript">
         var default_theme = "ayu";
         var jekyllBookThemeOverride = null;
-        var jekyllBookPrintState = { katexRendered: false };
+        var jekyllBookPrintState = { katexRendered: false, autoKatexRendered: false };
         try {
             jekyllBookThemeOverride = new URLSearchParams(window.location.search).get('theme');
         } catch (e) { }
@@ -350,13 +345,95 @@
                 <main>
                     <div class="page" {{dir}}>
                       {% if page.print_page %}
+                        {% assign home_candidates = site.pages | where: "lang-ref", "home" %}
+                        {% assign home_page = nil %}
+                        {% for home in home_candidates %}
+                          {% if page.lang %}
+                            {% if home.lang == page.lang %}
+                              {% assign home_page = home %}
+                            {% endif %}
+                          {% else %}
+                            {% unless home.lang %}
+                              {% assign home_page = home %}
+                            {% endunless %}
+                          {% endif %}
+                        {% endfor %}
+                        {% if home_page == nil %}
+                          {% assign home_page = home_candidates | first %}
+                        {% endif %}
+
                         <div class="print-controls">
                           <a class="icon-button print-action" href="#" onclick="window.print(); return false;">
                             <i class="fa fa-print"></i> Download as PDF
                           </a>
                         </div>
 
-                        <h1 class="page-title">{{ lang.title }}</h1>
+                        <section class="print-cover">
+                          <div class="print-cover-inner">
+                            <p class="print-cover-kicker">{{ site.homepage_title }}</p>
+                            <h1 class="page-title">{{ lang.title }}</h1>
+                            {% if site.title and site.title != lang.title %}
+                              <p class="print-cover-subtitle">{{ site.title }}</p>
+                            {% endif %}
+                            {% if lang.tagline %}
+                              <p class="print-cover-tagline">{{ lang.tagline }}</p>
+                            {% elsif site.tagline %}
+                              <p class="print-cover-tagline">{{ site.tagline }}</p>
+                            {% endif %}
+                          </div>
+                        </section>
+
+                        <section class="print-home">
+                          <h1>{{ site.homepage_title }}</h1>
+                          {% if home_page %}
+                            {{ home_page.content | markdownify }}
+                          {% endif %}
+
+                          <div class="print-toc">
+                            <h2>Summary</h2>
+                            <ol class="chapter">
+                              {% for chapter in lang.prologues %}
+                                {% assign node = site.pages | where: "path", chapter.path | first %}
+                                <li><a href="{{ site.baseurl }}{{ node.url }}">{{ node.title }}</a></li>
+                                {% if chapter.sections %}
+                                  <li><ol class="section">
+                                    {% for section in chapter.sections %}
+                                      {% assign snode = site.pages | where: "path", section.path | first %}
+                                      <li><a href="{{ site.baseurl }}{{ snode.url }}">{{ snode.title }}</a></li>
+                                    {% endfor %}
+                                  </ol></li>
+                                {% endif %}
+                              {% endfor %}
+
+                              {% for chapter in lang.chapters %}
+                                {% assign node = site.pages | where: "path", chapter.path | first %}
+                                {% assign chapteridx = forloop.index %}
+                                <li><a href="{{ site.baseurl }}{{ node.url }}"><strong aria-hidden="true">{{ chapteridx }}.</strong> {{ node.title }}</a></li>
+                                {% if chapter.sections %}
+                                  <li><ol class="section">
+                                    {% for section in chapter.sections %}
+                                      {% assign snode = site.pages | where: "path", section.path | first %}
+                                      <li><a href="{{ site.baseurl }}{{ snode.url }}"><strong aria-hidden="true">{{ chapteridx }}.{{ forloop.index }}.</strong> {{ snode.title }}</a></li>
+                                    {% endfor %}
+                                  </ol></li>
+                                {% endif %}
+                              {% endfor %}
+
+                              {% for chapter in lang.epilogues %}
+                                {% assign node = site.pages | where: "path", chapter.path | first %}
+                                <li><a href="{{ site.baseurl }}{{ node.url }}">{{ node.title }}</a></li>
+                                {% if chapter.sections %}
+                                  <li><ol class="section">
+                                    {% for section in chapter.sections %}
+                                      {% assign snode = site.pages | where: "path", section.path | first %}
+                                      <li><a href="{{ site.baseurl }}{{ snode.url }}">{{ snode.title }}</a></li>
+                                    {% endfor %}
+                                  </ol></li>
+                                {% endif %}
+                              {% endfor %}
+                            </ol>
+                          </div>
+                        </section>
 
                         {% for chapter in lang.prologues %}
                           {% assign node = site.pages | where: "path", chapter.path | first %}
@@ -511,6 +588,17 @@
     <script src="{{ site.baseurl }}/static/book.js" type="text/javascript" charset="utf-8"></script>
 
     <script>
+      function render_auto_katex() {
+      renderMathInElement(document.body, {delimiters: [
+                      {left: '$$', right: '$$', display: true},
+                      {left: '$', right: '$', display: false},
+                      {left: '\\[', right: '\\]', display: true},
+                      {left: '\\(', right: '\\)', display: false}
+      ]});
+      jekyllBookPrintState.autoKatexRendered = true;
+      document.dispatchEvent(new Event('jekyllbook:auto-katex-rendered'));
+      };
+
       function render_katex() {
       $("script[type='math/tex']").replaceWith(function() {
           var tex = $(this).text();
@@ -561,7 +649,7 @@
         }
 
         function waitForKatex() {
-          if (jekyllBookPrintState.katexRendered) {
+          if (jekyllBookPrintState.katexRendered && jekyllBookPrintState.autoKatexRendered) {
             return Promise.resolve();
           }
 
@@ -569,6 +657,10 @@
             var resolved = false;
 
             function done() {
+              if (!jekyllBookPrintState.katexRendered || !jekyllBookPrintState.autoKatexRendered) {
+                return;
+              }
+
               if (resolved) {
                 return;
               }
@@ -577,7 +669,12 @@
             }
 
             document.addEventListener('jekyllbook:katex-rendered', done, { once: true });
-            window.setTimeout(done, 4000);
+            document.addEventListener('jekyllbook:auto-katex-rendered', done, { once: true });
+            window.setTimeout(function () {
+              if (!resolved) {
+                resolve();
+              }
+            }, 5000);
           });
         }
 

@@ -1,4 +1,8 @@
 
+@page {
+    margin: 10mm 8mm;
+}
+
 #page-wrapper,
 html,
 body {
@@ -27,8 +31,14 @@ body {
     padding: 0;
 }
 
+.content main {
+    max-width: none;
+    margin: 0;
+}
+
 .page {
     overflow-y: initial;
+    padding: 0 6mm;
 }
 
 code {
@@ -77,14 +87,91 @@ img, svg, table, blockquote {
     display: none !important;
 }
 
+.print-cover,
+.print-home,
 .print-chapter {
     break-before: page;
     page-break-before: always;
     padding-top: 1rem;
 }
 
+.print-cover,
+.print-home {
+    break-after: page;
+    page-break-after: always;
+}
+
+.print-cover {
+    break-before: auto;
+    page-break-before: auto;
+    min-height: calc(100vh - 20mm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.print-cover-inner {
+    max-width: 70rem;
+    margin: 0 auto;
+}
+
+.print-cover-kicker,
+.print-cover-subtitle,
+.print-cover-tagline {
+    opacity: 0.85;
+}
+
+.print-cover-kicker {
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 1.3rem;
+}
+
+.print-cover .page-title {
+    margin: 2rem 0 1rem 0;
+    font-size: 4.2rem;
+}
+
+.print-cover-subtitle,
+.print-cover-tagline {
+    font-size: 2rem;
+}
+
+.print-home h1,
+.print-chapter h1,
+.print-section h2 {
+    break-after: avoid;
+    page-break-after: avoid;
+}
+
+.print-home .chapter,
+.print-home .section {
+    margin-top: 1.5rem;
+}
+
+.print-home .chapter li,
+.print-home .section li {
+    display: block;
+    line-height: 1.8;
+}
+
+.print-home .chapter {
+    padding-left: 0;
+}
+
+.print-home .section {
+    padding-left: 2rem;
+}
+
 .print-chapter:first-of-type {
     break-before: auto;
     page-break-before: auto;
     padding-top: 0;
+}
+
+.print-section {
+    break-before: page;
+    page-break-before: always;
+    padding-top: 1rem;
 }
