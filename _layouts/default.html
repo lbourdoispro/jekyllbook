@@ -664,6 +664,36 @@
       return null;
       };
 
+      function prepare_print_display_math(tex) {
+      var prepared = (tex || '').trim();
+
+      prepared = prepared.replace(/\r/g, '');
+      prepared = prepared.replace(/\\\\\\\[/g, '\\\\[');
+      prepared = prepared.replace(/\\\\\s*\[[^\]]*\]/g, '\\\\');
+      prepared = prepared.replace(/\\(vx|vy|vb|vz|vtheta|vh|vq|vk|vv|vytilde|vyhat|vycheck|vzcheck|vztilde|vmu|vu|mW|mA|mX|mY|mQ|mK|mV|mH|cx|ctheta|cz)\{(_[^}]*)\}/g, '\\$1$2');
+      prepared = prepared.replace(/^\s*\\\[/, '').replace(/\\\]\s*$/, '');
+
+      if (!/\\begin\{/.test(prepared) && /\\\\/.test(prepared)) {
+          prepared = '\\begin{aligned}\n' + prepared.replace(/(?:\\\\\s*)+$/, '') + '\n\\end{aligned}';
+      }
+
+      return prepared.trim();
+      };
+
+      function build_print_math_candidates(tex) {
+      var prepared = prepare_print_display_math(tex);
+      var candidates = [prepared];
+
+      if (/\\begin\{aligned\}/.test(prepared)) {
+          candidates.push(prepared.replace(/^\\begin\{aligned\}\s*/, '').replace(/\s*\\end\{aligned\}$/, ''));
+          candidates.push('\\begin{array}{l}\n' + prepared.replace(/^\\begin\{aligned\}\s*/, '').replace(/\s*\\end\{aligned\}$/, '') + '\n\\end{array}');
+      }
+
+      return candidates.filter(function (candidate, index, items) {
+          return candidate && items.indexOf(candidate) === index;
+      });
+      };
+
       function normalize_print_math_blocks() {
       Array.from(document.querySelectorAll('.print-home p, .print-chapter p, .print-section p')).forEach(function (block) {
           var math = extract_print_display_math(block.textContent);
@@ -680,15 +710,29 @@
 
       function render_print_display_math() {
       Array.from(document.querySelectorAll('.print-display-math')).forEach(function (block) {
-          var tex = block.getAttribute('data-math') || '';
-          try {
-              katex.render(tex, block, {
-                  displayMode: true,
-                  macros: jekyllBookKatexMacros,
-                  throwOnError: false
-              });
-          } catch (e) {
-              block.textContent = '\\[' + tex + '\\]';
+          var candidates = build_print_math_candidates(block.getAttribute('data-math') || '');
+          var rendered = false;
+
+          candidates.some(function (tex) {
+              try {
+                  block.innerHTML = '';
+                  katex.render(tex, block, {
+                      displayMode: true,
+                      macros: jekyllBookKatexMacros,
+                      throwOnError: false
+                  });
+
+                  if (!block.querySelector('.katex-error')) {
+                      rendered = true;
+                      return true;
+                  }
+              } catch (e) { }
+
+              return false;
+          });
+
+          if (!rendered) {
+              block.textContent = '\\[' + (candidates[0] || '') + '\\]';
           }
       });
       };

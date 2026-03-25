@@ -168,6 +168,20 @@ tr, td, th {
     break-inside: avoid;
 }
 
+.katex table,
+.katex tr,
+.katex td,
+.katex th {
+    margin: 0;
+    padding: 0;
+    border: 0 !important;
+    background: transparent !important;
+}
+
+.katex-display {
+    overflow: visible;
+}
+
 h1 + pre,
 h2 + pre,
 h3 + pre,
