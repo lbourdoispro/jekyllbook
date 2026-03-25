@@ -65,19 +65,24 @@
     <!-- Provide site root to javascript -->
     <script type="text/javascript">
         var default_theme = "ayu";
+        var jekyllBookThemeOverride = null;
+        var jekyllBookPrintState = { katexRendered: false };
+        try {
+            jekyllBookThemeOverride = new URLSearchParams(window.location.search).get('theme');
+        } catch (e) { }
     </script>
 
     <!-- Work around some values being stored in localStorage wrapped in quotes -->
     <script type="text/javascript">
         try {
-            var theme = localStorage.getItem('mdbook-theme');
+            var theme = jekyllBookThemeOverride || localStorage.getItem('mdbook-theme');
             var sidebar = localStorage.getItem('mdbook-sidebar');
 
-            if (theme.startsWith('"') && theme.endsWith('"')) {
+            if (theme && theme.startsWith('"') && theme.endsWith('"')) {
                 localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
             }
 
-            if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+            if (sidebar && sidebar.startsWith('"') && sidebar.endsWith('"')) {
                 localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
             }
         } catch (e) { }
@@ -86,7 +91,7 @@
     <!-- Set the theme before any content is loaded, prevents flash -->
     <script type="text/javascript">
         var theme;
-        try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { } 
+        try { theme = jekyllBookThemeOverride || localStorage.getItem('mdbook-theme'); } catch(e) { }
         if (theme === null || theme === undefined) { theme = default_theme; }
         document.body.className = theme;
         document.querySelector('html').className = theme + ' js';
@@ -305,7 +310,7 @@
                     <h1 class="menu-title">{{ lang.title }}</h1>
 
                     <div class="right-buttons">
-                        <a href="{{ base_url }}print/?autoprint=1" title="Print this book" aria-label="Print this book">
+                        <a id="print-button" href="{{ base_url }}print/?autoprint=1" data-print-url="{{ base_url }}print/" title="Print this book" aria-label="Print this book">
                             <i class="fa fa-print"></i>
                         </a>
                         <a href="{{ site.git_repository_url }}" title="Git repository" aria-label="Git repository">
@@ -516,6 +521,8 @@
           var tex = $(this).html();
           return katex.renderToString(tex.replace(/%.*/g, ''), {displayMode: true});
       });
+      jekyllBookPrintState.katexRendered = true;
+      document.dispatchEvent(new Event('jekyllbook:katex-rendered'));
       };
     </script>
 
@@ -523,9 +530,80 @@
     <script>
       (function () {
         var params = new URLSearchParams(window.location.search);
+        function waitForImages() {
+          var images = Array.from(document.images || []);
+          return Promise.all(images.map(function (img) {
+            if (img.complete) {
+              return Promise.resolve();
+            }
+
+            return new Promise(function (resolve) {
+              function done() {
+                img.removeEventListener('load', done);
+                img.removeEventListener('error', done);
+                resolve();
+              }
+
+              img.addEventListener('load', done, { once: true });
+              img.addEventListener('error', done, { once: true });
+            });
+          }));
+        }
+
+        function waitForFonts() {
+          if (document.fonts && document.fonts.ready) {
+            return document.fonts.ready.catch(function () {
+              return Promise.resolve();
+            });
+          }
+
+          return Promise.resolve();
+        }
+
+        function waitForKatex() {
+          if (jekyllBookPrintState.katexRendered) {
+            return Promise.resolve();
+          }
+
+          return new Promise(function (resolve) {
+            var resolved = false;
+
+            function done() {
+              if (resolved) {
+                return;
+              }
+              resolved = true;
+              resolve();
+            }
+
+            document.addEventListener('jekyllbook:katex-rendered', done, { once: true });
+            window.setTimeout(done, 4000);
+          });
+        }
+
+        function waitForLayout() {
+          return new Promise(function (resolve) {
+            window.requestAnimationFrame(function () {
+              window.requestAnimationFrame(resolve);
+            });
+          });
+        }
+
         if (params.get('autoprint') === '1') {
           window.addEventListener('load', function () {
-            window.print();
+            Promise.all([
+              waitForFonts(),
+              waitForImages(),
+              waitForKatex()
+            ]).then(function () {
+              return waitForLayout();
+            }).then(function () {
+              return new Promise(function (resolve) {
+                window.setTimeout(resolve, 250);
+              });
+            }).then(function () {
+              window.print();
+            });
           });
         }
       })();

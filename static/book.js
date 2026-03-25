@@ -351,6 +351,7 @@ function playpen_text(playpen) {
 
 (function themes() {
     var html = document.querySelector('html');
+    var body = document.body;
     var themeToggleButton = document.getElementById('theme-toggle');
     var themePopup = document.getElementById('theme-list');
     var themeColorMetaTag = document.querySelector('meta[name="theme-color"]');
@@ -364,7 +365,7 @@ function playpen_text(playpen) {
     function showThemes() {
         themePopup.style.display = 'block';
         themeToggleButton.setAttribute('aria-expanded', true);
-        themePopup.querySelector("button#" + document.body.className).focus();
+        themePopup.querySelector("button#" + body.className).focus();
     }
 
     function hideThemes() {
@@ -412,13 +413,14 @@ function playpen_text(playpen) {
             try { localStorage.setItem('mdbook-theme', theme); } catch (e) { }
         }
 
+        body.className = theme;
         html.classList.remove(previousTheme);
         html.classList.add(theme);
     }
 
     // Set theme
     var theme;
-    try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+    try { theme = window.jekyllBookThemeOverride || localStorage.getItem('mdbook-theme'); } catch(e) { }
     if (theme === null || theme === undefined) { theme = default_theme; }
 
     set_theme(theme, false);
@@ -775,6 +777,31 @@ function playpen_text(playpen) {
         if (!searchWrapper.hidden && !searchWrapper.contains(e.target) && !searchToggleButton.contains(e.target)) {
             closeSearch();
         }
+    });
+})();
+
+(function printBook() {
+    var printButton = document.getElementById('print-button');
+    if (!printButton) {
+        return;
+    }
+
+    function getCurrentTheme() {
+        try {
+            return localStorage.getItem('mdbook-theme') || document.body.className || default_theme;
+        } catch (e) {
+            return document.body.className || default_theme;
+        }
+    }
+
+    printButton.addEventListener('click', function (e) {
+        var printUrl = printButton.getAttribute('data-print-url') || printButton.href;
+        var url = new URL(printUrl, window.location.origin);
+
+        e.preventDefault();
+        url.searchParams.set('autoprint', '1');
+        url.searchParams.set('theme', getCurrentTheme());
+        window.location.href = url.toString();
     });
 })();
 

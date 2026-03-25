@@ -1,4 +1,13 @@
 
+#page-wrapper,
+html,
+body {
+    background: var(--bg) !important;
+    color: var(--fg) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
 #sidebar,
 #menu-bar,
 .nav-chapters,
@@ -23,11 +32,12 @@
 }
 
 code {
-    background-color: #666666;
+    background-color: var(--quote-border);
     border-radius: 5px;
 
     /* Force background to be printed in Chrome */
     -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
 }
 
 pre > .buttons {
@@ -35,8 +45,8 @@ pre > .buttons {
 }
 
 a, a:visited, a:active, a:hover {
-    color: #4183c4;
-    text-decoration: none;
+    color: var(--links);
+    text-decoration: underline;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -49,6 +59,16 @@ pre, code {
     white-space: pre-wrap;
 }
 
+img, svg, table, blockquote {
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+* {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
 .fa {
     display: none !important;
 }
@@ -58,9 +78,13 @@ pre, code {
 }
 
 .print-chapter {
+    break-before: page;
     page-break-before: always;
+    padding-top: 1rem;
 }
 
 .print-chapter:first-of-type {
+    break-before: auto;
     page-break-before: auto;
+    padding-top: 0;
 }
