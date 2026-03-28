@@ -831,6 +831,31 @@
           });
         }
 
+        function preventImagePageBreaks() {
+          var inlineTagNames = ['A', 'SPAN', 'EM', 'STRONG', 'B', 'I', 'ABBR', 'CODE'];
+          Array.from(document.querySelectorAll(
+            '.print-home img, .print-chapter img, .print-section img'
+          )).forEach(function (img) {
+            img.style.pageBreakInside = 'avoid';
+            img.style.breakInside = 'avoid';
+
+            var container = img.parentElement;
+            while (container && inlineTagNames.includes(container.tagName)) {
+              container = container.parentElement;
+            }
+            if (container) {
+              container.style.pageBreakInside = 'avoid';
+              container.style.breakInside = 'avoid';
+            }
+
+            var figure = img.closest('figure');
+            if (figure) {
+              figure.style.pageBreakInside = 'avoid';
+              figure.style.breakInside = 'avoid';
+            }
+          });
+        }
+
         function waitForImages() {
           var images = Array.from(document.images || []);
           return Promise.all(images.map(function (img) {
@@ -902,6 +927,7 @@
         if (params.get('autoprint') === '1') {
           window.addEventListener('load', function () {
             absolutizePrintResources();
+            preventImagePageBreaks();
             Promise.all([
               waitForFonts(),
               waitForImages(),
