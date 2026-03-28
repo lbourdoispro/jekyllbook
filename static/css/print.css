@@ -280,3 +280,18 @@ p + blockquote {
     page-break-before: always;
     padding-top: 1rem;
 }
+
+/* Force <details> elements open in print so content is not hidden */
+details {
+    display: block !important;
+}
+
+details > summary {
+    display: block !important;
+    list-style: none !important;
+}
+
+details > summary::marker,
+details > summary::-webkit-details-marker {
+    display: none !important;
+}

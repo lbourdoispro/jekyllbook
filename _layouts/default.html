@@ -939,11 +939,19 @@
           _origPrint();
         };
 
+        function openAllDetails() {
+          Array.from(document.querySelectorAll('details')).forEach(function (el) {
+            el.setAttribute('open', '');
+          });
+        }
+
         window.addEventListener('beforeprint', function () {
+          openAllDetails();
           absolutizePrintResources();
         });
 
         window.addEventListener('load', function () {
+          openAllDetails();
           absolutizePrintResources();
           preventImagePageBreaks();
 
