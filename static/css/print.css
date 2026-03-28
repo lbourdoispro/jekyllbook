@@ -87,6 +87,13 @@ img, svg {
     margin-right: auto;
 }
 
+figure,
+p:has(> img),
+p:has(> svg) {
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
 blockquote {
     page-break-inside: auto;
     break-inside: auto;
