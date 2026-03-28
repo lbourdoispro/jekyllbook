@@ -295,3 +295,14 @@ details > summary::marker,
 details > summary::-webkit-details-marker {
     display: none !important;
 }
+
+/* Prevent page break between a list item (question) and its following blockquote (answer) */
+li {
+    page-break-after: avoid;
+    break-after: avoid;
+}
+
+blockquote {
+    page-break-before: avoid;
+    break-before: avoid;
+}
