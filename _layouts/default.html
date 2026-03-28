@@ -16,7 +16,7 @@
 {% endif %}
 <html lang="{{ thislang }}" class="sidebar-visible no-js">
     <head>
-      {% if page.print_page %}<script>document.write('<base href="'+location.origin+'/">');</script>{% endif %}
+      {% if page.print_page %}<script>document.write('<base href="'+location.origin+'{{ site.baseurl }}/">');</script>{% endif %}
       <meta charset="UTF-8">
         <title>
           {% if page.url == base_url %}
