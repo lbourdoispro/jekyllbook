@@ -296,8 +296,9 @@ details > summary::-webkit-details-marker {
     display: none !important;
 }
 
-/* Prevent page break between a list item (question) and its following blockquote (answer) */
-li {
+/* Keep FAQ-style Q&A together: prevent break between a <ul>/<ol> and a following <blockquote> */
+ul:has(+ blockquote),
+ol:has(+ blockquote) {
     page-break-after: avoid;
     break-after: avoid;
 }
