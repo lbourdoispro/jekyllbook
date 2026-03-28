@@ -83,6 +83,11 @@ code {
     white-space: pre-wrap;
 }
 
+pre > code {
+    page-break-inside: auto;
+    break-inside: auto;
+}
+
 img, svg {
     page-break-inside: avoid;
     break-inside: avoid;
