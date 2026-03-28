@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 {% if page.lang %}
   {% assign base_url = site.baseurl | append: "/" | append: page.lang | append: "/" %}
   {% assign lang = site[page.lang] %}
@@ -427,15 +427,15 @@
                         <section class="print-cover">
                           <div class="print-cover-inner">
                             {% if thislang == "fr" %}
-                              <h1 class="page-title">Cours d’apprentissage profond de la New York University</h1>
-                              <p class="print-cover-subtitle">Edition 2021</p>
-                              <p class="print-cover-tagline">Le cours de Yann LE CUN et Alfredo CANZIANI</p>
-                              <p class="print-cover-translation">traduit en français par Loïck BOURDOIS</p>
+                              <h1 class="page-title">{{ site.print_cover_title_fr | default: "Cours d’apprentissage profond de la New York University" }}</h1>
+                              <p class="print-cover-subtitle">{{ site.print_cover_subtitle_fr | default: "Edition 2021" }}</p>
+                              <p class="print-cover-tagline">{{ site.print_cover_tagline_fr | default: "Le cours de Yann LE CUN et Alfredo CANZIANI" }}</p>
+                              <p class="print-cover-translation">{{ site.print_cover_translation_fr | default: "traduit en français par Loïck BOURDOIS" }}</p>
                               <p class="print-cover-link" data-baseurl="{{ site.baseurl }}"></p>
                             {% else %}
-                              <h1 class="page-title">New York University Deep Learning Course</h1>
-                              <p class="print-cover-subtitle">2021 Edition</p>
-                              <p class="print-cover-tagline">Course by Yann LeCun and Alfredo Canziani</p>
+                              <h1 class="page-title">{{ site.print_cover_title | default: "New York University Deep Learning Course" }}</h1>
+                              <p class="print-cover-subtitle">{{ site.print_cover_subtitle | default: "2021 Edition" }}</p>
+                              <p class="print-cover-tagline">{{ site.print_cover_tagline | default: "Course by Yann LeCun and Alfredo Canziani" }}</p>
                               <p class="print-cover-link" data-baseurl="{{ site.baseurl }}"></p>
                             {% endif %}
                           </div>
@@ -804,37 +804,24 @@
         var params = new URLSearchParams(window.location.search);
 
         function absolutizePrintResources() {
-          function resolveUrl(value, baseUrl) {
-            if (!value || value.startsWith('#') || value.startsWith('mailto:') || value.startsWith('tel:') || value.startsWith('javascript:') || value.startsWith('data:')) {
-              return value;
-            }
-            try {
-              return new URL(value, window.location.origin + baseUrl).href;
-            } catch (e) {
-              return value;
-            }
-          }
-
+          // Use link.href (browser-resolved using the <base> tag) and write it
+          // back into the raw attribute so Chrome's PDF generator sees absolute URLs.
           Array.from(document.querySelectorAll('a[href]')).forEach(function (link) {
             try {
-              var href = link.getAttribute('href');
-              var section = link.closest('[data-base-url]');
-              var baseUrl = section ? section.getAttribute('data-base-url') : window.location.pathname;
-              var absoluteHref = resolveUrl(href, baseUrl || '/');
-              if (absoluteHref) {
-                link.setAttribute('href', absoluteHref);
+              var resolved = link.href;
+              if (resolved && !resolved.startsWith('javascript:') && !resolved.startsWith('blob:')) {
+                link.setAttribute('href', resolved);
               }
             } catch (e) {}
           });
 
           Array.from(document.querySelectorAll('img[src]')).forEach(function (img) {
-            var src = img.getAttribute('src');
-            var section = img.closest('[data-base-url]');
-            var baseUrl = section ? section.getAttribute('data-base-url') : window.location.pathname;
-            var absoluteSrc = resolveUrl(src, baseUrl || '/');
-            if (absoluteSrc) {
-              img.setAttribute('src', absoluteSrc);
-            }
+            try {
+              var resolved = img.src;
+              if (resolved && !resolved.startsWith('data:')) {
+                img.setAttribute('src', resolved);
+              }
+            } catch (e) {}
           });
         }
 
