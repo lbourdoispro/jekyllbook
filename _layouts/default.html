@@ -623,28 +623,42 @@
 
       function prepare_print_display_math(tex) {
       var prepared = (tex || '').trim();
+      var rawPrepared;
 
       prepared = prepared.replace(/\r/g, '');
+      rawPrepared = prepared;
       prepared = prepared.replace(/\\\\\\\[/g, '\\\\[');
       prepared = prepared.replace(/\\\\\s*\[[^\]]*\]/g, '\\\\');
       prepared = prepared.replace(/\\(vx|vy|vb|vz|vtheta|vh|vq|vk|vv|vytilde|vyhat|vycheck|vzcheck|vztilde|vmu|vu|mW|mA|mX|mY|mQ|mK|mV|mH|cx|ctheta|cz)\{(_[^}]*)\}/g, '\\$1$2');
       prepared = prepared.replace(/^\s*\\\[/, '').replace(/\\\]\s*$/, '');
+      prepared = prepared.replace(/(?:\\\\\s*)+$/, '');
 
       if (!/\\begin\{/.test(prepared) && /\\\\/.test(prepared)) {
-          prepared = '\\begin{aligned}\n' + prepared.replace(/(?:\\\\\s*)+$/, '') + '\n\\end{aligned}';
+          prepared = '\\begin{aligned}\n' + prepared + '\n\\end{aligned}';
       }
 
-      return prepared.trim();
+      return {
+          prepared: prepared.trim(),
+          raw: rawPrepared.trim().replace(/^\s*\$\$/, '').replace(/\$\$\s*$/, '').replace(/^\s*\\\[/, '').replace(/\\\]\s*$/, '').replace(/(?:\\\\\s*)+$/, '')
+      };
       };
 
       function build_print_math_candidates(tex) {
-      var prepared = prepare_print_display_math(tex);
-      var candidates = [prepared];
+      var preparedResult = prepare_print_display_math(tex);
+      var prepared = preparedResult.prepared;
+      var raw = preparedResult.raw;
+      var candidates = [prepared, raw];
 
       if (/\\begin\{aligned\}/.test(prepared)) {
           candidates.push(prepared.replace(/^\\begin\{aligned\}\s*/, '').replace(/\s*\\end\{aligned\}$/, ''));
           candidates.push('\\begin{array}{l}\n' + prepared.replace(/^\\begin\{aligned\}\s*/, '').replace(/\s*\\end\{aligned\}$/, '') + '\n\\end{array}');
       }
+
+      if (!/\\begin\{/.test(raw) && /\\\\/.test(raw)) {
+          candidates.push('\\begin{aligned}\n' + raw + '\n\\end{aligned}');
+      }
+
+      candidates.push('\\displaystyle ' + raw);
 
       return candidates.filter(function (candidate, index, items) {
           return candidate && items.indexOf(candidate) === index;
@@ -661,7 +675,7 @@
           var mathBlock = document.createElement('div');
           mathBlock.className = 'print-display-math';
           mathBlock.setAttribute('data-math', math);
-          mathBlock.textContent = '$$\n' + prepare_print_display_math(math) + '\n$$';
+          mathBlock.textContent = '$$\n' + prepare_print_display_math(math).prepared + '\n$$';
           block.replaceWith(mathBlock);
       });
       };
@@ -694,6 +708,21 @@
           });
 
           if (!rendered) {
+              var fallbackTex = candidates[0] || '';
+              block.textContent = '$$\n' + fallbackTex + '\n$$';
+              renderMathInElement(block, {
+                  delimiters: [
+                      {left: '$$', right: '$$', display: true},
+                      {left: '$', right: '$', display: false},
+                      {left: '\\[', right: '\\]', display: true},
+                      {left: '\\(', right: '\\)', display: false}
+                  ],
+                  macros: jekyllBookKatexMacros,
+                  throwOnError: false
+              });
+          }
+
+          if (!block.querySelector('.katex')) {
               block.textContent = '\\[' + (candidates[0] || '') + '\\]';
           }
       });
