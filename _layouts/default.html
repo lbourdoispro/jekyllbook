@@ -807,18 +807,23 @@
             if (!value || value.startsWith('#') || value.startsWith('mailto:') || value.startsWith('tel:') || value.startsWith('javascript:') || value.startsWith('data:')) {
               return value;
             }
-
-            return new URL(value, window.location.origin + baseUrl).href;
+            try {
+              return new URL(value, window.location.origin + baseUrl).href;
+            } catch (e) {
+              return value;
+            }
           }
 
           Array.from(document.querySelectorAll('a[href]')).forEach(function (link) {
-            var href = link.getAttribute('href');
-            var section = link.closest('[data-base-url]');
-            var baseUrl = section ? section.getAttribute('data-base-url') : window.location.pathname;
-            var absoluteHref = resolveUrl(href, baseUrl || '/');
-            if (absoluteHref) {
-              link.setAttribute('href', absoluteHref);
-            }
+            try {
+              var href = link.getAttribute('href');
+              var section = link.closest('[data-base-url]');
+              var baseUrl = section ? section.getAttribute('data-base-url') : window.location.pathname;
+              var absoluteHref = resolveUrl(href, baseUrl || '/');
+              if (absoluteHref) {
+                link.setAttribute('href', absoluteHref);
+              }
+            } catch (e) {}
           });
 
           Array.from(document.querySelectorAll('img[src]')).forEach(function (img) {
@@ -929,6 +934,13 @@
         Array.from(document.querySelectorAll('.print-cover-link[data-baseurl]')).forEach(function(el) {
           el.textContent = window.location.origin + el.getAttribute('data-baseurl') + '/';
         });
+
+        // Override window.print to guarantee absolutization runs right before PDF generation
+        var _origPrint = window.print.bind(window);
+        window.print = function () {
+          absolutizePrintResources();
+          _origPrint();
+        };
 
         window.addEventListener('beforeprint', function () {
           absolutizePrintResources();
