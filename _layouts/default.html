@@ -443,7 +443,7 @@
                         <section class="print-home"{% if home_page %} data-base-url="{{ site.baseurl }}{{ home_page.url }}"{% endif %}>
                           <h1>{{ site.homepage_title }}</h1>
                           {% if home_page %}
-                            {{ home_page.content | markdownify }}
+                            {{ home_page.content }}
                           {% endif %}
                         </section>
 
@@ -451,14 +451,14 @@
                           {% assign node = site.pages | where: "path", chapter.path | first %}
                           <section class="print-chapter" data-base-url="{{ site.baseurl }}{{ node.url }}">
                             <h1>{{ node.title }}</h1>
-                            {{ node.content | markdownify }}
+                            {{ node.content }}
                           </section>
                           {% if chapter.sections %}
                             {% for section in chapter.sections %}
                               {% assign snode = site.pages | where: "path", section.path | first %}
                               <section class="print-section" data-base-url="{{ site.baseurl }}{{ snode.url }}">
                                 <h2>{{ snode.title }}</h2>
-                                {{ snode.content | markdownify }}
+                                {{ snode.content }}
                               </section>
                             {% endfor %}
                           {% endif %}
@@ -469,14 +469,14 @@
                           {% assign chapteridx = forloop.index %}
                           <section class="print-chapter" data-base-url="{{ site.baseurl }}{{ node.url }}">
                             <h1><span class="print-number">{{ chapteridx }}.</span> {{ node.title }}</h1>
-                            {{ node.content | markdownify }}
+                            {{ node.content }}
                           </section>
                           {% if chapter.sections %}
                             {% for section in chapter.sections %}
                               {% assign snode = site.pages | where: "path", section.path | first %}
                               <section class="print-section" data-base-url="{{ site.baseurl }}{{ snode.url }}">
                                 <h2><span class="print-number">{{ chapteridx }}.{{ forloop.index }}.</span> {{ snode.title }}</h2>
-                                {{ snode.content | markdownify }}
+                                {{ snode.content }}
                               </section>
                             {% endfor %}
                           {% endif %}
@@ -486,14 +486,14 @@
                           {% assign node = site.pages | where: "path", chapter.path | first %}
                           <section class="print-chapter" data-base-url="{{ site.baseurl }}{{ node.url }}">
                             <h1>{{ node.title }}</h1>
-                            {{ node.content | markdownify }}
+                            {{ node.content }}
                           </section>
                           {% if chapter.sections %}
                             {% for section in chapter.sections %}
                               {% assign snode = site.pages | where: "path", section.path | first %}
                               <section class="print-section" data-base-url="{{ site.baseurl }}{{ snode.url }}">
                                 <h2>{{ snode.title }}</h2>
-                                {{ snode.content | markdownify }}
+                                {{ snode.content }}
                               </section>
                             {% endfor %}
                           {% endif %}
@@ -623,14 +623,7 @@
 
       function prepare_print_display_math(tex) {
       var prepared = (tex || '').trim();
-      var rawPrepared;
-
       prepared = prepared.replace(/\r/g, '');
-      rawPrepared = prepared;
-      prepared = prepared.replace(/\\\\\\\[/g, '\\\\[');
-      prepared = prepared.replace(/\\\\\s*\[[^\]]*\]/g, '\\\\');
-      prepared = prepared.replace(/\\(vx|vy|vb|vz|vtheta|vh|vq|vk|vv|vytilde|vyhat|vycheck|vzcheck|vztilde|vmu|vu|mW|mA|mX|mY|mQ|mK|mV|mH|cx|ctheta|cz)\{(_[^}]*)\}/g, '\\$1$2');
-      prepared = prepared.replace(/^\s*\\\[/, '').replace(/\\\]\s*$/, '');
       prepared = prepared.replace(/(?:\\\\\s*)+$/, '');
 
       if (!/\\begin\{/.test(prepared) && /\\\\/.test(prepared)) {
@@ -639,7 +632,7 @@
 
       return {
           prepared: prepared.trim(),
-          raw: rawPrepared.trim().replace(/^\s*\$\$/, '').replace(/\$\$\s*$/, '').replace(/^\s*\\\[/, '').replace(/\\\]\s*$/, '').replace(/(?:\\\\\s*)+$/, '')
+          raw: tex.trim()
       };
       };
 
