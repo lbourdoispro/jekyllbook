@@ -945,13 +945,35 @@
           });
         }
 
+        function wrapFaqItems() {
+          // Wrap each <ul>/<ol> immediately followed by a <blockquote> in a div
+          // with page-break-inside:avoid so the Q&A stays on the same page.
+          var sections = document.querySelectorAll(
+            '.print-home, .print-chapter, .print-section'
+          );
+          Array.from(sections).forEach(function (section) {
+            Array.from(section.querySelectorAll('ul, ol')).forEach(function (list) {
+              var next = list.nextElementSibling;
+              if (next && next.tagName === 'BLOCKQUOTE') {
+                var wrapper = document.createElement('div');
+                wrapper.style.cssText = 'page-break-inside:avoid;break-inside:avoid;';
+                list.parentNode.insertBefore(wrapper, list);
+                wrapper.appendChild(list);
+                wrapper.appendChild(next);
+              }
+            });
+          });
+        }
+
         window.addEventListener('beforeprint', function () {
           openAllDetails();
+          wrapFaqItems();
           absolutizePrintResources();
         });
 
         window.addEventListener('load', function () {
           openAllDetails();
+          wrapFaqItems();
           absolutizePrintResources();
           preventImagePageBreaks();
 
