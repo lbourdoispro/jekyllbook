@@ -699,6 +699,49 @@
       });
       };
 
+      function repair_remaining_print_math() {
+      Array.from(document.querySelectorAll('.print-home p, .print-home div, .print-chapter p, .print-chapter div, .print-section p, .print-section div')).forEach(function (block) {
+          if (block.classList.contains('print-display-math') || block.querySelector('.katex')) {
+              return;
+          }
+
+          if (block.children.length > 0) {
+              return;
+          }
+
+          var math = extract_print_display_math(block.textContent);
+          if (!math) {
+              return;
+          }
+
+          var candidates = build_print_math_candidates(math);
+          var rendered = false;
+
+          candidates.some(function (tex) {
+              try {
+                  block.innerHTML = '';
+                  katex.render(tex, block, {
+                      displayMode: true,
+                      macros: jekyllBookKatexMacros,
+                      throwOnError: false
+                  });
+
+                  if (!block.querySelector('.katex-error')) {
+                      block.classList.add('print-display-math');
+                      rendered = true;
+                      return true;
+                  }
+              } catch (e) { }
+
+              return false;
+          });
+
+          if (!rendered) {
+              block.textContent = '\\[' + (candidates[0] || math) + '\\]';
+          }
+      });
+      };
+
       function render_auto_katex() {
       normalize_print_math_blocks();
       renderMathInElement(document.body, {
@@ -712,6 +755,7 @@
                       throwOnError: false
       });
       render_print_display_math_fallback();
+      repair_remaining_print_math();
       jekyllBookPrintState.autoKatexRendered = true;
       document.dispatchEvent(new Event('jekyllbook:auto-katex-rendered'));
       };
