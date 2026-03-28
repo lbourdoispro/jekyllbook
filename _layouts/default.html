@@ -801,6 +801,15 @@
     <script>
       (function () {
         var params = new URLSearchParams(window.location.search);
+
+        // Add a <base> tag so Chrome's PDF generator resolves relative URLs
+        // correctly even for links our JS hasn't processed yet.
+        (function() {
+          var base = document.createElement('base');
+          base.href = window.location.origin + '{{ site.baseurl }}/';
+          document.head.insertBefore(base, document.head.firstChild);
+        })();
+
         function absolutizePrintResources() {
           function resolveUrl(value, baseUrl) {
             if (!value || value.startsWith('#') || value.startsWith('mailto:') || value.startsWith('tel:') || value.startsWith('javascript:') || value.startsWith('data:')) {
@@ -924,9 +933,21 @@
           });
         }
 
+        function fillLastPage() {
+          var page = document.querySelector('.page');
+          if (!page || !page.lastElementChild) return;
+          var last = page.lastElementChild;
+          last.style.minHeight = '100vh';
+        }
+
+        window.addEventListener('beforeprint', function () {
+          absolutizePrintResources();
+        });
+
         window.addEventListener('load', function () {
           absolutizePrintResources();
           preventImagePageBreaks();
+          fillLastPage();
 
           if (params.get('autoprint') === '1') {
             Promise.all([

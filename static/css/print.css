@@ -249,6 +249,15 @@ p + blockquote {
     display: block;
 }
 
+.print-cover,
+.print-home,
+.print-chapter,
+.print-section {
+    background: var(--bg) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
 .print-home .chapter {
     padding-left: 0;
 }
