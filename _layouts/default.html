@@ -924,10 +924,11 @@
           });
         }
 
-        if (params.get('autoprint') === '1') {
-          window.addEventListener('load', function () {
-            absolutizePrintResources();
-            preventImagePageBreaks();
+        window.addEventListener('load', function () {
+          absolutizePrintResources();
+          preventImagePageBreaks();
+
+          if (params.get('autoprint') === '1') {
             Promise.all([
               waitForFonts(),
               waitForImages(),
@@ -941,8 +942,8 @@
             }).then(function () {
               window.print();
             });
-          });
-        }
+          }
+        });
       })();
     </script>
     {% endif %}
