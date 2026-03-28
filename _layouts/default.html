@@ -435,6 +435,7 @@
                               <h1 class="page-title">New York University Deep Learning Course</h1>
                               <p class="print-cover-subtitle">2021 Edition</p>
                               <p class="print-cover-tagline">Course by Yann LeCun and Alfredo Canziani</p>
+                              <p class="print-cover-link">https://lbourdois.github.io/NYU-DLSP21/</p>
                             {% endif %}
                           </div>
                         </section>
@@ -444,51 +445,6 @@
                           {% if home_page %}
                             {{ home_page.content | markdownify }}
                           {% endif %}
-
-                          <div class="print-toc">
-                            <h2>{% if thislang == "fr" %}Sommaire{% else %}Summary{% endif %}</h2>
-                            <ol class="chapter">
-                              {% for chapter in lang.prologues %}
-                                {% assign node = site.pages | where: "path", chapter.path | first %}
-                                <li><span class="print-toc-entry">{{ node.title }}</span></li>
-                                {% if chapter.sections %}
-                                  <li><ol class="section">
-                                    {% for section in chapter.sections %}
-                                      {% assign snode = site.pages | where: "path", section.path | first %}
-                                      <li><span class="print-toc-entry">{{ snode.title }}</span></li>
-                                    {% endfor %}
-                                  </ol></li>
-                                {% endif %}
-                              {% endfor %}
-
-                              {% for chapter in lang.chapters %}
-                                {% assign node = site.pages | where: "path", chapter.path | first %}
-                                {% assign chapteridx = forloop.index %}
-                                <li><span class="print-toc-entry"><strong aria-hidden="true">{{ chapteridx }}.</strong> {{ node.title }}</span></li>
-                                {% if chapter.sections %}
-                                  <li><ol class="section">
-                                    {% for section in chapter.sections %}
-                                      {% assign snode = site.pages | where: "path", section.path | first %}
-                                      <li><span class="print-toc-entry"><strong aria-hidden="true">{{ chapteridx }}.{{ forloop.index }}.</strong> {{ snode.title }}</span></li>
-                                    {% endfor %}
-                                  </ol></li>
-                                {% endif %}
-                              {% endfor %}
-
-                              {% for chapter in lang.epilogues %}
-                                {% assign node = site.pages | where: "path", chapter.path | first %}
-                                <li><span class="print-toc-entry">{{ node.title }}</span></li>
-                                {% if chapter.sections %}
-                                  <li><ol class="section">
-                                    {% for section in chapter.sections %}
-                                      {% assign snode = site.pages | where: "path", section.path | first %}
-                                      <li><span class="print-toc-entry">{{ snode.title }}</span></li>
-                                    {% endfor %}
-                                  </ol></li>
-                                {% endif %}
-                              {% endfor %}
-                            </ol>
-                          </div>
                         </section>
 
                         {% for chapter in lang.prologues %}
@@ -705,12 +661,17 @@
           var mathBlock = document.createElement('div');
           mathBlock.className = 'print-display-math';
           mathBlock.setAttribute('data-math', math);
+          mathBlock.textContent = '$$\n' + prepare_print_display_math(math) + '\n$$';
           block.replaceWith(mathBlock);
       });
       };
 
-      function render_print_display_math() {
+      function render_print_display_math_fallback() {
       Array.from(document.querySelectorAll('.print-display-math')).forEach(function (block) {
+          if (block.querySelector('.katex')) {
+              return;
+          }
+
           var candidates = build_print_math_candidates(block.getAttribute('data-math') || '');
           var rendered = false;
 
@@ -740,7 +701,6 @@
 
       function render_auto_katex() {
       normalize_print_math_blocks();
-      render_print_display_math();
       renderMathInElement(document.body, {
                       delimiters: [
                       {left: '$$', right: '$$', display: true},
@@ -751,6 +711,7 @@
                       macros: jekyllBookKatexMacros,
                       throwOnError: false
       });
+      render_print_display_math_fallback();
       jekyllBookPrintState.autoKatexRendered = true;
       document.dispatchEvent(new Event('jekyllbook:auto-katex-rendered'));
       };
