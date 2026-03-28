@@ -30,6 +30,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1">
       <meta name="theme-color" content="#ffffff" />
 
+      {% if page.print_page %}<base href="{{ site.url }}{{ site.baseurl }}/">{% endif %}
       <link rel="shortcut icon" href="{{ site.baseurl }}/static/favicon.ico">
       <link rel="stylesheet" href="{{ site.baseurl }}/static/css/variables.css">
       <link rel="stylesheet" href="{{ site.baseurl }}/static/css/general.css">
@@ -802,14 +803,6 @@
       (function () {
         var params = new URLSearchParams(window.location.search);
 
-        // Add a <base> tag so Chrome's PDF generator resolves relative URLs
-        // correctly even for links our JS hasn't processed yet.
-        (function() {
-          var base = document.createElement('base');
-          base.href = window.location.origin + '{{ site.baseurl }}/';
-          document.head.insertBefore(base, document.head.firstChild);
-        })();
-
         function absolutizePrintResources() {
           function resolveUrl(value, baseUrl) {
             if (!value || value.startsWith('#') || value.startsWith('mailto:') || value.startsWith('tel:') || value.startsWith('javascript:') || value.startsWith('data:')) {
@@ -935,9 +928,10 @@
 
         function fillLastPage() {
           var page = document.querySelector('.page');
-          if (!page || !page.lastElementChild) return;
-          var last = page.lastElementChild;
-          last.style.minHeight = '100vh';
+          if (!page) return;
+          var filler = document.createElement('div');
+          filler.style.cssText = 'height:100vh;background:var(--bg);-webkit-print-color-adjust:exact;print-color-adjust:exact;';
+          page.appendChild(filler);
         }
 
         window.addEventListener('beforeprint', function () {
