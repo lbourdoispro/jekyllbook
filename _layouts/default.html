@@ -16,7 +16,7 @@
 {% endif %}
 <html lang="{{ thislang }}" class="sidebar-visible no-js">
     <head>
-      {% if page.print_page %}<script>document.write('<base href="'+location.origin+'{{ site.baseurl }}/">');</script>{% endif %}
+
       <meta charset="UTF-8">
         <title>
           {% if page.url == base_url %}
@@ -804,24 +804,33 @@
         var params = new URLSearchParams(window.location.search);
 
         function absolutizePrintResources() {
-          // Use link.href (browser-resolved using the <base> tag) and write it
-          // back into the raw attribute so Chrome's PDF generator sees absolute URLs.
-          Array.from(document.querySelectorAll('a[href]')).forEach(function (link) {
-            try {
-              var resolved = link.href;
-              if (resolved && !resolved.startsWith('javascript:') && !resolved.startsWith('blob:')) {
-                link.setAttribute('href', resolved);
-              }
-            } catch (e) {}
-          });
+          // Resolve relative URLs per section using each section's data-base-url.
+          // This correctly handles paths like ../images/ from translated pages.
+          var origin = window.location.origin;
+          var sections = document.querySelectorAll(
+            '.print-home, .print-chapter, .print-section, .print-cover'
+          );
+          Array.from(sections).forEach(function (section) {
+            var rawBase = section.getAttribute('data-base-url');
+            var sectionBase = rawBase ? (origin + rawBase) : (origin + '/');
 
-          Array.from(document.querySelectorAll('img[src]')).forEach(function (img) {
-            try {
-              var resolved = img.src;
-              if (resolved && !resolved.startsWith('data:')) {
-                img.setAttribute('src', resolved);
-              }
-            } catch (e) {}
+            Array.from(section.querySelectorAll('img[src]')).forEach(function (img) {
+              try {
+                var src = img.getAttribute('src');
+                if (src && !src.startsWith('data:') && !src.startsWith('blob:')) {
+                  img.setAttribute('src', new URL(src, sectionBase).href);
+                }
+              } catch (e) {}
+            });
+
+            Array.from(section.querySelectorAll('a[href]')).forEach(function (link) {
+              try {
+                var href = link.getAttribute('href');
+                if (href && !href.startsWith('javascript:') && !href.startsWith('blob:') && !href.startsWith('#')) {
+                  link.setAttribute('href', new URL(href, sectionBase).href);
+                }
+              } catch (e) {}
+            });
           });
         }
 

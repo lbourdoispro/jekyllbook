@@ -94,8 +94,8 @@ pre > code {
 img, svg {
     page-break-inside: avoid;
     break-inside: avoid;
-    max-width: 92% !important;
-    max-height: 560px !important;
+    max-width: 100% !important;
+    max-height: 700px !important;
     width: auto !important;
     height: auto !important;
     display: block;
