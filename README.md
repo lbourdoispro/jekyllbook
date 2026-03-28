@@ -48,6 +48,27 @@ i \hbar \frac{\partial}{\partial t}\Psi(\mathbf{r},t) = \hat H \Psi(\mathbf{r},t
 \end{aligned}
 $$
 
+## PDF Export
+
+On Windows, you can export the book to PDF with a Chromium browser in headless mode:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\export-pdf.ps1 -Lang fr -Theme ayu
+```
+
+This script:
+- uses Microsoft Edge or Google Chrome
+- exports the `/print/` page without the browser's default header/footer
+- lets you choose the language and theme
+- writes the PDF to `pdf-output/`
+
+Examples:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\export-pdf.ps1 -Lang fr -Theme ayu
+powershell -ExecutionPolicy Bypass -File .\scripts\export-pdf.ps1 -Lang en -Theme light
+```
+
 ## Author
 
 **Zeming Lin**
