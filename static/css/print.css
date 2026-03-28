@@ -1,4 +1,4 @@
-
+﻿
 @page {
     margin: 0;
 }
@@ -94,8 +94,8 @@ pre > code {
 img, svg {
     page-break-inside: avoid;
     break-inside: avoid;
-    max-width: 85% !important;
-    max-height: 380px !important;
+    max-width: 92% !important;
+    max-height: 560px !important;
     width: auto !important;
     height: auto !important;
     display: block;
