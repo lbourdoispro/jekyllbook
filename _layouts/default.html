@@ -430,12 +430,12 @@
                               <p class="print-cover-subtitle">Edition 2021</p>
                               <p class="print-cover-tagline">Le cours de Yann LE CUN et Alfredo CANZIANI</p>
                               <p class="print-cover-translation">traduit en français par Loïck BOURDOIS</p>
-                              <p class="print-cover-link">{{ site.url }}{{ site.baseurl }}/</p>
+                              <p class="print-cover-link" data-baseurl="{{ site.baseurl }}"></p>
                             {% else %}
                               <h1 class="page-title">New York University Deep Learning Course</h1>
                               <p class="print-cover-subtitle">2021 Edition</p>
                               <p class="print-cover-tagline">Course by Yann LeCun and Alfredo Canziani</p>
-                              <p class="print-cover-link">{{ site.url }}{{ site.baseurl }}/</p>
+                              <p class="print-cover-link" data-baseurl="{{ site.baseurl }}"></p>
                             {% endif %}
                           </div>
                         </section>
@@ -924,6 +924,11 @@
             });
           });
         }
+
+        // Fill cover link with the real site URL (window.location.origin is always correct)
+        Array.from(document.querySelectorAll('.print-cover-link[data-baseurl]')).forEach(function(el) {
+          el.textContent = window.location.origin + el.getAttribute('data-baseurl') + '/';
+        });
 
         window.addEventListener('beforeprint', function () {
           absolutizePrintResources();
