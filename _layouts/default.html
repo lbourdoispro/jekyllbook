@@ -430,12 +430,12 @@
                               <p class="print-cover-subtitle">Edition 2021</p>
                               <p class="print-cover-tagline">Le cours de Yann LE CUN et Alfredo CANZIANI</p>
                               <p class="print-cover-translation">traduit en français par Loïck BOURDOIS</p>
-                              <p class="print-cover-link">https://lbourdois.github.io/NYU-DLSP21/</p>
+                              <p class="print-cover-link">{{ site.url }}{{ site.baseurl }}/</p>
                             {% else %}
                               <h1 class="page-title">New York University Deep Learning Course</h1>
                               <p class="print-cover-subtitle">2021 Edition</p>
                               <p class="print-cover-tagline">Course by Yann LeCun and Alfredo Canziani</p>
-                              <p class="print-cover-link">https://lbourdois.github.io/NYU-DLSP21/</p>
+                              <p class="print-cover-link">{{ site.url }}{{ site.baseurl }}/</p>
                             {% endif %}
                           </div>
                         </section>
@@ -925,14 +925,6 @@
           });
         }
 
-        function fillLastPage() {
-          var page = document.querySelector('.page');
-          if (!page) return;
-          var filler = document.createElement('div');
-          filler.style.cssText = 'height:100vh;background:var(--bg);-webkit-print-color-adjust:exact;print-color-adjust:exact;';
-          page.appendChild(filler);
-        }
-
         window.addEventListener('beforeprint', function () {
           absolutizePrintResources();
         });
@@ -940,7 +932,6 @@
         window.addEventListener('load', function () {
           absolutizePrintResources();
           preventImagePageBreaks();
-          fillLastPage();
 
           if (params.get('autoprint') === '1') {
             Promise.all([
