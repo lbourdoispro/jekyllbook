@@ -1,13 +1,21 @@
 
 @page {
-    margin: 10mm 8mm;
+    margin: 0;
 }
 
-#page-wrapper,
-html,
-body {
+html {
     background: var(--bg) !important;
     color: var(--fg) !important;
+    min-height: 100%;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+body,
+#page-wrapper {
+    background: var(--bg) !important;
+    color: var(--fg) !important;
+    min-height: 100vh;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
 }
@@ -38,7 +46,7 @@ body {
 
 .page {
     overflow-y: initial;
-    padding: 0 6mm;
+    padding: 10mm 14mm;
 }
 
 code {
@@ -139,7 +147,7 @@ tr, td, th {
 .print-cover {
     break-before: auto;
     page-break-before: auto;
-    min-height: calc(100vh - 20mm);
+    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
