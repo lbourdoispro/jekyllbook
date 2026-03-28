@@ -430,6 +430,7 @@
                               <p class="print-cover-subtitle">Edition 2021</p>
                               <p class="print-cover-tagline">Le cours de Yann LE CUN et Alfredo CANZIANI</p>
                               <p class="print-cover-translation">traduit en français par Loïck BOURDOIS</p>
+                              <p class="print-cover-link">https://lbourdois.github.io/NYU-DLSP21/</p>
                             {% else %}
                               <h1 class="page-title">New York University Deep Learning Course</h1>
                               <p class="print-cover-subtitle">2021 Edition</p>
@@ -445,16 +446,16 @@
                           {% endif %}
 
                           <div class="print-toc">
-                            <h2>Summary</h2>
+                            <h2>{% if thislang == "fr" %}Sommaire{% else %}Summary{% endif %}</h2>
                             <ol class="chapter">
                               {% for chapter in lang.prologues %}
                                 {% assign node = site.pages | where: "path", chapter.path | first %}
-                                <li><a href="{{ site.baseurl }}{{ node.url }}">{{ node.title }}</a></li>
+                                <li><span class="print-toc-entry">{{ node.title }}</span></li>
                                 {% if chapter.sections %}
                                   <li><ol class="section">
                                     {% for section in chapter.sections %}
                                       {% assign snode = site.pages | where: "path", section.path | first %}
-                                      <li><a href="{{ site.baseurl }}{{ snode.url }}">{{ snode.title }}</a></li>
+                                      <li><span class="print-toc-entry">{{ snode.title }}</span></li>
                                     {% endfor %}
                                   </ol></li>
                                 {% endif %}
@@ -463,12 +464,12 @@
                               {% for chapter in lang.chapters %}
                                 {% assign node = site.pages | where: "path", chapter.path | first %}
                                 {% assign chapteridx = forloop.index %}
-                                <li><a href="{{ site.baseurl }}{{ node.url }}"><strong aria-hidden="true">{{ chapteridx }}.</strong> {{ node.title }}</a></li>
+                                <li><span class="print-toc-entry"><strong aria-hidden="true">{{ chapteridx }}.</strong> {{ node.title }}</span></li>
                                 {% if chapter.sections %}
                                   <li><ol class="section">
                                     {% for section in chapter.sections %}
                                       {% assign snode = site.pages | where: "path", section.path | first %}
-                                      <li><a href="{{ site.baseurl }}{{ snode.url }}"><strong aria-hidden="true">{{ chapteridx }}.{{ forloop.index }}.</strong> {{ snode.title }}</a></li>
+                                      <li><span class="print-toc-entry"><strong aria-hidden="true">{{ chapteridx }}.{{ forloop.index }}.</strong> {{ snode.title }}</span></li>
                                     {% endfor %}
                                   </ol></li>
                                 {% endif %}
@@ -476,12 +477,12 @@
 
                               {% for chapter in lang.epilogues %}
                                 {% assign node = site.pages | where: "path", chapter.path | first %}
-                                <li><a href="{{ site.baseurl }}{{ node.url }}">{{ node.title }}</a></li>
+                                <li><span class="print-toc-entry">{{ node.title }}</span></li>
                                 {% if chapter.sections %}
                                   <li><ol class="section">
                                     {% for section in chapter.sections %}
                                       {% assign snode = site.pages | where: "path", section.path | first %}
-                                      <li><a href="{{ site.baseurl }}{{ snode.url }}">{{ snode.title }}</a></li>
+                                      <li><span class="print-toc-entry">{{ snode.title }}</span></li>
                                     {% endfor %}
                                   </ol></li>
                                 {% endif %}

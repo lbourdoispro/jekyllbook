@@ -75,9 +75,14 @@ code {
     white-space: pre-wrap;
 }
 
-img, svg, blockquote {
+img, svg {
     page-break-inside: avoid;
     break-inside: avoid;
+}
+
+blockquote {
+    page-break-inside: auto;
+    break-inside: auto;
 }
 
 table {
@@ -151,8 +156,14 @@ tr, td, th {
 
 .print-cover-subtitle,
 .print-cover-tagline,
-.print-cover-translation {
+.print-cover-translation,
+.print-cover-link {
     font-size: 2rem;
+}
+
+.print-cover-link {
+    margin-top: 1.5rem;
+    word-break: break-word;
 }
 
 .print-home h1,
@@ -189,7 +200,9 @@ h4 + pre,
 h1 + .print-display-math,
 h2 + .print-display-math,
 h3 + .print-display-math,
-h4 + .print-display-math {
+h4 + .print-display-math,
+li + blockquote,
+p + blockquote {
     break-before: avoid;
     page-break-before: avoid;
 }
@@ -203,6 +216,10 @@ h4 + .print-display-math {
 .print-home .section li {
     display: block;
     line-height: 1.8;
+}
+
+.print-toc-entry {
+    display: block;
 }
 
 .print-home .chapter {
