@@ -924,8 +924,12 @@
           var label = el.getAttribute('data-link-label') || '';
           var baseurl = el.getAttribute('data-baseurl') || '';
           var url = /^https?:\/\//i.test(baseurl) ? baseurl : (window.location.origin + baseurl);
+          var normalizedUrl = url.replace(/\/?$/, '/');
+          var link = document.createElement('a');
 
-          el.textContent = label + url.replace(/\/?$/, '/');
+          link.href = normalizedUrl;
+          link.textContent = normalizedUrl;
+          el.replaceChildren(document.createTextNode(label), link);
         });
 
         // Override window.print to guarantee absolutization runs right before PDF generation
