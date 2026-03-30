@@ -921,7 +921,11 @@
 
         // Fill cover link with the real site URL (window.location.origin is always correct)
         Array.from(document.querySelectorAll('.print-cover-link[data-baseurl]')).forEach(function(el) {
-          el.textContent = window.location.origin + el.getAttribute('data-baseurl') + '/';
+          var label = el.getAttribute('data-link-label') || '';
+          var baseurl = el.getAttribute('data-baseurl') || '';
+          var url = /^https?:\/\//i.test(baseurl) ? baseurl : (window.location.origin + baseurl);
+
+          el.textContent = label + url.replace(/\/?$/, '/');
         });
 
         // Override window.print to guarantee absolutization runs right before PDF generation
